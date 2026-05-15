@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="박형숙 무병장수">
+<meta name="theme-color" content="#0ea5e9">
+<title>박형숙 무병장수 프로젝트</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Malgun Gothic',sans-serif;background:#f1f5f9;color:#0f172a;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+  body{padding-bottom:env(safe-area-inset-bottom);min-height:100vh}
+  .container{max-width:520px;margin:0 auto;padding-bottom:96px;min-height:100vh;background:#f1f5f9}
+  header{position:sticky;top:0;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;padding:14px 18px;padding-top:calc(14px + env(safe-area-inset-top));z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+  header h1{margin:0;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  header .date{font-size:11px;opacity:0.9;font-weight:400}
+  main{padding:14px}
+  .card{background:white;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+  .card h2{margin:0 0 12px;font-size:15px;font-weight:600;color:#1e293b;display:flex;align-items:center;justify-content:space-between}
+  .card h2 .sub{font-size:11px;color:#94a3b8;font-weight:400}
+  .summary-line{font-size:13px;color:#475569;line-height:1.5;background:#f1f5f9;padding:10px 12px;border-radius:10px;border-left:3px solid #0ea5e9}
+  .alert-banner{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #ef4444;border-radius:10px;padding:12px;margin-bottom:12px;color:#991b1b;font-size:13px;line-height:1.5}
+  .alert-banner.warn{background:#fefce8;border-color:#fde68a;border-left-color:#facc15;color:#854d0e}
+
+  /* 프로필 카드 (혈구수치 통합) */
+  .profile-card{background:linear-gradient(135deg,#fefce8,#fef9c3);padding:14px;display:flex;gap:12px;align-items:stretch}
+  .profile-avatar{width:88px;height:88px;border-radius:14px;overflow:hidden;flex-shrink:0;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+  .profile-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 25%;display:block}
+  .profile-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+  .profile-name{font-size:16px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .profile-name .badge{font-size:10px;font-weight:600;background:#f59e0b;color:white;padding:2px 6px;border-radius:6px}
+  .profile-sub{font-size:11px;color:#64748b;margin-top:2px;line-height:1.4}
+  .profile-sub strong{color:#0f172a;font-weight:700}
+  .profile-blood-row{display:flex;gap:4px;flex-wrap:wrap}
+  .blood-chip{font-size:10px;padding:3px 7px;border-radius:6px;font-weight:700;background:#e2e8f0;color:#334155;line-height:1.2;white-space:nowrap}
+  .blood-chip .lbl{font-weight:500;opacity:0.7;margin-right:3px;font-size:9px}
+  .blood-chip.normal{background:#dcfce7;color:#166534}
+  .blood-chip.warn{background:#fed7aa;color:#9a3412}
+  .blood-chip.alert{background:#fecaca;color:#991b1b}
+  .blood-chip.danger{background:#ef4444;color:white}
+  .blood-time{font-size:10px;color:#94a3b8}
+
+  /* 차트 */
+  .chart-card{padding-bottom:10px}
+  .chart-wrap{position:relative;height:240px;margin-top:4px}
+  .cg-legend{display:flex;gap:14px;font-size:11px;color:#475569;margin-top:8px;flex-wrap:wrap}
+  .cg-legend .lg{display:inline-flex;align-items:center;gap:5px}
+  .cg-legend .dot{width:10px;height:10px;border-radius:50%;border:2px solid;background:white;display:inline-block}
+
+  /* 빠른 측정 입력 카드 */
+  .qm-row{margin-bottom:10px}
+  .qm-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;font-size:12px;color:#475569;font-weight:600}
+  .qm-row-header .qm-val{font-size:14px;color:#0f172a;font-weight:700}
+  .qm-row-header .qm-clear{background:#fee2e2;border:none;color:#dc2626;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:13px;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+  .qm-row-header .qm-pm{display:inline-flex;gap:4px;margin-right:6px}
+  .qm-row-header .qm-pm button{width:26px;height:24px;border-radius:6px;border:1px solid #e2e8f0;background:white;color:#475569;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;padding:0;line-height:1}
+  .qm-presets{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px}
+  .qm-presets button{padding:9px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#334155;cursor:pointer;font-family:inherit;flex-shrink:0;min-width:50px}
+  .qm-presets button:active{background:#e0f2fe}
+  .qm-presets button.selected{background:#0ea5e9;color:white;border-color:#0ea5e9;box-shadow:0 2px 6px rgba(14,165,233,0.4)}
+  .qm-presets button.warn{background:#fef3c7;border-color:#fbbf24;color:#92400e}
+  .qm-presets button.warn.selected{background:#f59e0b;color:white;border-color:#f59e0b}
+  .qm-presets button.danger{background:#fee2e2;border-color:#f87171;color:#991b1b}
+  .qm-presets button.danger.selected{background:#dc2626;color:white;border-color:#dc2626}
+  .qm-bp-row{display:flex;gap:10px;align-items:center}
+  .qm-bp-row .qm-bp-label{font-size:10px;color:#64748b;font-weight:600;width:24px;flex-shrink:0}
+  .qm-cg-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9}
+  .qm-cg-row .qm-cg-label{font-size:12px;color:#64748b;font-weight:600}
+  .qm-cg-row .qm-cg-btns{display:flex;gap:5px;flex:1}
+  .qm-cg-row .qm-cg-btns button{flex:1;padding:8px 4px;border:1.5px solid #e2e8f0;background:white;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#475569}
+  .qm-cg-row .qm-cg-btns button.active{color:white}
+  .qm-time{flex-shrink:0;font-size:11px;color:#64748b;padding:6px 10px;background:#f1f5f9;border-radius:6px;border:none;font-family:inherit;cursor:pointer}
+  .qm-confirm{display:block;width:100%;background:#16a34a;color:white;border:none;padding:10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;letter-spacing:0.3px}
+  .qm-confirm:active{background:#15803d;transform:scale(0.98)}
+  .qm-save-row{display:flex;gap:8px;margin-top:14px}
+  .qm-save-row .btn-primary{flex:1}
+  .qm-save-row .qm-note-btn{padding:14px;border:1px solid #fbbf24;background:#fef3c7;color:#92400e;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
+  .qm-note-input{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;background:white;-webkit-appearance:none;min-height:60px;resize:vertical;display:none}
+  .qm-note-input.show{display:block;margin-bottom:8px}
+
+  /* 활성 간병 배너 */
+  .active-shift-banner{background:#f8fafc;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .active-shift-banner.has{background:linear-gradient(135deg,#ecfeff,#e0f2fe)}
+  .active-shift-info{flex:1}
+  .active-shift-info .who{font-size:13px;font-weight:700;color:#0f172a}
+  .active-shift-info .duration{font-size:11px;color:#64748b;margin-top:2px}
+  .end-shift-btn{padding:6px 12px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
+
+  /* 증상 타임라인 */
+  .symptom-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9}
+  .symptom-item:last-child{border-bottom:none}
+  .symptom-time{flex-shrink:0;width:62px;font-size:11px;color:#0f172a;font-weight:700;text-align:right;padding-top:1px;background:#fef3c7;border-radius:6px;height:24px;display:flex;align-items:center;justify-content:center;line-height:1}
+  .symptom-content{flex:1;font-size:13px;color:#334155;line-height:1.5}
+  .symptom-content .cg-tag{display:inline-block;padding:1px 6px;border-radius:5px;font-size:10px;font-weight:600;margin-left:4px;color:white}
+  .symptom-add-btn{width:100%;padding:10px;background:#fef3c7;color:#92400e;border:1px dashed #fbbf24;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px}
+  .symptom-add-btn:active{background:#fde68a}
+
+  /* 히스토리 공통 */
+  .timeline-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9}
+  .timeline-item:last-child{border-bottom:none}
+  .timeline-time{flex-shrink:0;width:60px;font-size:11px;color:#94a3b8;font-weight:500;text-align:right;padding-top:2px}
+  .timeline-content{flex:1;font-size:13px;color:#334155;line-height:1.5}
+  .timeline-badge{display:inline-block;padding:1px 8px;border-radius:6px;font-size:10px;font-weight:600;margin-right:6px;background:#e0f2fe;color:#0369a1}
+  .timeline-badge.med{background:#dcfce7;color:#166534}
+  .timeline-badge.blood{background:#fce7f3;color:#9f1239}
+  .timeline-badge.transfusion{background:#ede9fe;color:#5b21b6}
+  .timeline-badge.note{background:#fef3c7;color:#854d0e}
+  .timeline-badge.vital{background:#e0f2fe;color:#0369a1}
+  .timeline-badge.shift{background:#dbeafe;color:#1e40af}
+  .caregiver-tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:600;margin-left:4px;color:white}
+  .empty-state{text-align:center;padding:20px 16px;color:#94a3b8;font-size:13px}
+
+  nav.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;display:flex;justify-content:space-around;padding:6px 0;padding-bottom:calc(6px + env(safe-area-inset-bottom));z-index:40;max-width:520px;margin:0 auto}
+  nav.bottom-nav button{flex:1;border:none;background:transparent;padding:8px 4px;font-size:11px;color:#94a3b8;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:inherit}
+  nav.bottom-nav button.active{color:#0ea5e9}
+  nav.bottom-nav button svg{width:22px;height:22px}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:100;display:none;align-items:flex-end;justify-content:center}
+  .modal-backdrop.show{display:flex}
+  .modal{background:white;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom));animation:slideUp 0.25s ease}
+  @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .modal-header h3{margin:0;font-size:17px;font-weight:700}
+  .modal-close{background:#f1f5f9;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;color:#64748b;display:flex;align-items:center;justify-content:center}
+  .form-row{margin-bottom:14px}
+  .form-row label{display:block;font-size:12px;color:#64748b;font-weight:500;margin-bottom:6px}
+  .form-row input,.form-row textarea{width:100%;padding:14px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-family:inherit;background:white;-webkit-appearance:none}
+  .form-row textarea{min-height:100px;resize:vertical}
+  .btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px}
+  .btn-secondary{width:100%;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px}
+  .med-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+  .med-btn{padding:14px 10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3}
+  .med-btn.selected{background:#dcfce7;border-color:#16a34a;box-shadow:0 0 0 2px #16a34a}
+  .filter-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .filter-btn{padding:6px 12px;border:1px solid #e2e8f0;background:white;border-radius:16px;font-size:12px;color:#64748b;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+  .filter-btn.active{background:#0ea5e9;color:white;border-color:#0ea5e9}
+  .tab-section{display:none}
+  .tab-section.active{display:block}
+  .header-actions{display:flex;gap:8px}
+  .header-actions button{background:rgba(255,255,255,0.18);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit}
+  .delete-btn{background:#fee2e2;color:#dc2626;border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;margin-left:8px}
+  .threshold-info{font-size:11px;color:#64748b;line-height:1.5;background:#f8fafc;padding:8px 10px;border-radius:8px;margin-top:6px;border-left:3px solid #cbd5e1}
+  .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0f172a;color:white;padding:10px 18px;border-radius:24px;font-size:13px;z-index:200;opacity:0;transition:opacity 0.25s;pointer-events:none;font-weight:500;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  .toast.success{background:#16a34a}
+  .toast.warn{background:#d97706}
+  .toast.danger{background:#dc2626}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>
+      <span>박형숙 무병장수 프로젝트 <span class="date" id="today-date"></span></span>
+      <div class="header-actions"><button onclick="showSettings()">설정</button></div>
+    </h1>
+  </header>
+  <main>
+    <div id="alert-area"></div>
+
+    <section id="tab-dashboard" class="tab-section active">
+
+      <!-- 0. 프로필 (혈구수치 통합) -->
+      <div class="card profile-card">
+        <div class="profile-avatar"><img id="profile-img" src="data:image/jpeg;base64,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" alt="박형숙" onerror="this.style.display='none'"></div>
+        <div class="profile-info">
+          <div>
+            <div class="profile-name">박형숙 <span class="badge">62세</span></div>
+            <div class="profile-sub">MDS · 폐렴 입원 <strong id="profile-day">D+?</strong> · 위험도 3/4</div>
+          </div>
+          <div>
+            <div class="profile-blood-row" id="profile-blood"></div>
+            <div class="blood-time" id="profile-blood-time"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. 활력징후 통합 차트 -->
+      <div class="card chart-card">
+        <h2>오늘 활력징후 <span class="sub">0시 → 24시</span></h2>
+        <div class="chart-wrap"><canvas id="chart-vitals"></canvas></div>
+        <div class="cg-legend" style="border-top:1px solid #f1f5f9;padding-top:8px;margin-top:8px">
+          <span class="lg"><span style="display:inline-block;width:18px;height:2px;background:#ef4444;vertical-align:middle"></span> 체온</span>
+          <span class="lg"><span style="display:inline-block;width:18px;height:2px;background:#10b981;vertical-align:middle"></span> 맥박</span>
+          <span class="lg"><span style="display:inline-block;width:18px;height:2px;background:#8b5cf6;vertical-align:middle"></span> 호흡</span>
+          <span class="lg"><span style="display:inline-block;width:18px;height:2px;background:#3b82f6;vertical-align:middle"></span> BP</span>
+          <span class="lg"><span style="display:inline-block;width:1px;height:12px;border-left:2px dashed #f59e0b;vertical-align:middle"></span> 특이사항</span>
+        </div>
+        <div class="cg-legend">
+          <span class="lg"><span class="dot" style="border-color:#3b82f6"></span>아버지</span>
+          <span class="lg"><span class="dot" style="border-color:#10b981"></span>형</span>
+          <span class="lg"><span class="dot" style="border-color:#f59e0b"></span>나</span>
+          <span class="lg" style="margin-left:auto;color:#94a3b8">점 색 = 측정자</span>
+        </div>
+      </div>
+
+      <!-- 2. 빠른 측정 입력 -->
+      <div class="card">
+        <h2>빠른 측정 입력 <span class="sub">탭으로 선택</span></h2>
+
+        <div class="qm-cg-row">
+          <span class="qm-cg-label">기록자</span>
+          <div class="qm-cg-btns" id="qm-cg-btns">
+            <button data-cg="father">아버지</button>
+            <button data-cg="older">형</button>
+            <button data-cg="me">나</button>
+          </div>
+          <button class="qm-time" onclick="qmEditTime()" id="qm-time-display">지금</button>
+        </div>
+
+        <div class="qm-row">
+          <div class="qm-row-header">
+            <span>체온 <span class="qm-val" id="qm-temp-val">—</span> ℃</span>
+            <span>
+              <span class="qm-pm"><button onclick="qmAdj('temp',-0.1)">-</button><button onclick="qmAdj('temp',0.1)">+</button></span>
+              <button class="qm-clear" onclick="qmClear('temp')">×</button>
+            </span>
+          </div>
+          <div class="qm-presets" id="qm-temp-presets"></div>
+          <button class="qm-confirm" onclick="qmConfirmMetric('temp')">✓ 체온만 저장</button>
+        </div>
+
+        <div class="qm-row">
+          <div class="qm-row-header">
+            <span>호흡수 <span class="qm-val" id="qm-rr-val">—</span> /분</span>
+            <span>
+              <span class="qm-pm"><button onclick="qmAdj('rr',-1)">-</button><button onclick="qmAdj('rr',1)">+</button></span>
+              <button class="qm-clear" onclick="qmClear('rr')">×</button>
+            </span>
+          </div>
+          <div class="qm-presets" id="qm-rr-presets"></div>
+          <button class="qm-confirm" onclick="qmConfirmMetric('rr')">✓ 호흡수만 저장</button>
+        </div>
+
+        <div class="qm-row">
+          <div class="qm-row-header">
+            <span>맥박 <span class="qm-val" id="qm-hr-val">—</span> /분</span>
+            <span>
+              <span class="qm-pm"><button onclick="qmAdj('hr',-5)">-</button><button onclick="qmAdj('hr',5)">+</button></span>
+              <button class="qm-clear" onclick="qmClear('hr')">×</button>
+            </span>
+          </div>
+          <div class="qm-presets" id="qm-hr-presets"></div>
+          <button class="qm-confirm" onclick="qmConfirmMetric('hr')">✓ 맥박만 저장</button>
+        </div>
+
+        <div class="qm-row">
+          <div class="qm-row-header">
+            <span>SpO₂ <span class="qm-val" id="qm-spo2-val">—</span> %</span>
+            <span>
+              <span class="qm-pm"><button onclick="qmAdj('spo2',-1)">-</button><button onclick="qmAdj('spo2',1)">+</button></span>
+              <button class="qm-clear" onclick="qmClear('spo2')">×</button>
+            </span>
+          </div>
+          <div class="qm-presets" id="qm-spo2-presets"></div>
+          <button class="qm-confirm" onclick="qmConfirmMetric('spo2')">✓ SpO₂만 저장</button>
+        </div>
+
+        <div class="qm-row">
+          <div class="qm-row-header">
+            <span>혈압 <span class="qm-val" id="qm-bp-val">—</span></span>
+            <span><button class="qm-clear" onclick="qmClear('bp')">×</button></span>
+          </div>
+          <div class="qm-bp-row">
+            <span class="qm-bp-label">수축</span>
+            <div class="qm-presets" id="qm-sbp-presets" style="flex:1"></div>
+          </div>
+          <div class="qm-bp-row" style="margin-top:4px">
+            <span class="qm-bp-label">이완</span>
+            <div class="qm-presets" id="qm-dbp-presets" style="flex:1"></div>
+          </div>
+          <button class="qm-confirm" onclick="qmConfirmMetric('bp')">✓ 혈압만 저장</button>
+        </div>
+
+        <textarea class="qm-note-input" id="qm-note" placeholder="특이사항 (선택) — 예: 오른쪽 옆구리 통증, 가래에 피 섞임"></textarea>
+
+        <div class="qm-save-row">
+          <button class="btn-primary" onclick="qmSave()" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">전체 한꺼번에 저장</button>
+        </div>
+      </div>
+
+      <!-- 3. 오늘 특이사항 -->
+      <div class="card">
+        <h2>오늘 특이사항 <span class="sub" id="symptom-count"></span></h2>
+        <button class="symptom-add-btn" onclick="openNoteForm()">+ 특이사항 추가</button>
+        <div id="today-symptoms"></div>
+      </div>
+
+      <!-- 4. 간병 교대 -->
+      <div class="card">
+        <h2>지금 간병 중</h2>
+        <div id="active-shift-banner"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <button class="qm-cg-btns" data-cg="father" onclick="quickStartShift('father')" style="padding:11px 4px;border:1px solid #e2e8f0;background:white;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#475569"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#3b82f6;margin-right:4px;vertical-align:middle"></span>아버지 시작</button>
+          <button data-cg="older" onclick="quickStartShift('older')" style="padding:11px 4px;border:1px solid #e2e8f0;background:white;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#475569"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10b981;margin-right:4px;vertical-align:middle"></span>형 시작</button>
+          <button data-cg="me" onclick="quickStartShift('me')" style="padding:11px 4px;border:1px solid #e2e8f0;background:white;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#475569"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:4px;vertical-align:middle"></span>나 시작</button>
+        </div>
+      </div>
+
+      <!-- 5. 최근 약/처치 -->
+      <div class="card">
+        <h2>최근 약 / 처치</h2>
+        <button class="btn-secondary" onclick="openMedForm()" style="margin-bottom:8px;margin-top:0">+ 약·처치 추가</button>
+        <div id="recent-meds" class="empty-state">아직 기록 없음</div>
+      </div>
+
+      <!-- 6. 한 줄 요약 -->
+      <div class="card">
+        <h2>한 줄 요약</h2>
+        <div class="summary-line" id="daily-summary">기록을 입력하면 자동 요약됩니다.</div>
+      </div>
+    </section>
+
+    <section id="tab-history" class="tab-section">
+      <div class="card">
+        <h2>히스토리</h2>
+        <div class="filter-row" id="history-filters">
+          <button class="filter-btn active" data-filter="all">전체</button>
+          <button class="filter-btn" data-filter="shift">간병</button>
+          <button class="filter-btn" data-filter="vital">활력</button>
+          <button class="filter-btn" data-filter="med">약</button>
+          <button class="filter-btn" data-filter="blood">혈액</button>
+          <button class="filter-btn" data-filter="note">특이</button>
+        </div>
+        <div id="history-list"></div>
+      </div>
+    </section>
+
+    <section id="tab-charts" class="tab-section">
+      <div class="card">
+        <h2>장기 추이</h2>
+        <div class="filter-row" id="chart-range">
+          <button class="filter-btn" data-range="1">24시간</button>
+          <button class="filter-btn active" data-range="3">3일</button>
+          <button class="filter-btn" data-range="7">7일</button>
+          <button class="filter-btn" data-range="30">30일</button>
+          <button class="filter-btn" data-range="all">전체</button>
+        </div>
+      </div>
+      <div class="card"><h2>체온</h2><div class="chart-wrap"><canvas id="chart-temp"></canvas></div></div>
+      <div class="card"><h2>호흡수</h2><div class="chart-wrap"><canvas id="chart-rr"></canvas></div></div>
+      <div class="card"><h2>맥박</h2><div class="chart-wrap"><canvas id="chart-hr"></canvas></div></div>
+      <div class="card"><h2>SpO₂</h2><div class="chart-wrap"><canvas id="chart-spo2"></canvas></div></div>
+      <div class="card"><h2>혈액 수치</h2><div class="chart-wrap"><canvas id="chart-blood"></canvas></div></div>
+    </section>
+
+    <section id="tab-export" class="tab-section">
+      <div class="card">
+        <h2>내보내기 / 백업</h2>
+        <p style="font-size:13px;color:#475569;line-height:1.6;margin:0 0 12px">기록을 마크다운으로 다운받거나 JSON 백업이 가능합니다.</p>
+        <button class="btn-primary" onclick="exportMarkdown()">마크다운으로 다운로드</button>
+        <button class="btn-secondary" onclick="exportJSON()">JSON 백업 다운로드</button>
+        <button class="btn-secondary" onclick="importJSON()">JSON 백업 불러오기</button>
+        <input type="file" id="import-file" accept=".json" style="display:none">
+      </div>
+      <div class="card">
+        <h2>혈액 수치 입력</h2>
+        <button class="btn-secondary" onclick="openBloodForm()">+ 혈액 수치 추가</button>
+      </div>
+      <div class="card">
+        <h2>응급 기준 빠른 참조</h2>
+        <div class="threshold-info">
+          <strong>즉시 간호사 호출 / 응급</strong><br>
+          • 체온 38.5℃↑ 또는 해열제 후 2~3시간 후도 38℃↑<br>
+          • SpO₂ 94%↓ 반복, 산소량 증가 필요<br>
+          • 호흡수 24회/분↑ 지속<br>
+          • 맥박 안정 시 110~120↑ 지속<br>
+          • 의식 둔함, 말 어눌함, 한쪽 마비<br>
+          • 피 섞인 가래 증가, 코피·잇몸출혈·혈뇨·혈변<br>
+          • 새로운 흉통, 청색증, 식은땀
+        </div>
+      </div>
+      <div class="card">
+        <h2>데이터 관리</h2>
+        <button class="btn-secondary" onclick="clearAll()" style="background:#fee2e2;color:#dc2626">전체 기록 삭제</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="active" data-tab="dashboard" onclick="switchTab('dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>대시보드
+    </button>
+    <button data-tab="history" onclick="switchTab('history')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>히스토리
+    </button>
+    <button data-tab="charts" onclick="switchTab('charts')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-5"/></svg>장기추이
+    </button>
+    <button data-tab="export" onclick="switchTab('export')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>내보내기
+    </button>
+  </nav>
+
+  <div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+    <div class="modal" id="modal-content"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ====== 간병자 정의 ======
+const CAREGIVERS = [
+  { id:'father', name:'한해광', short:'아버지', color:'#3b82f6' },
+  { id:'older',  name:'한승욱', short:'형',     color:'#10b981' },
+  { id:'me',     name:'한승재', short:'나',     color:'#f59e0b' },
+];
+function cgById(id){ return CAREGIVERS.find(c => c.id === id) || null; }
+function cgName(id){ const c = cgById(id); return c ? `${c.name}(${c.short})` : '미지정'; }
+function cgColor(id){ const c = cgById(id); return c ? c.color : '#94a3b8'; }
+
+// ====== 데이터 모델 ======
+const STORAGE_KEY = 'mds_tracker_v2';
+let records = [];
+function loadRecords(){ try{ records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ records = []; } }
+function saveRecords(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+function newId(){ return Date.now()+'_'+Math.random().toString(36).slice(2,8); }
+function deleteRecord(id){ records = records.filter(r => r.id !== id); saveRecords(); }
+function sortRecords(){ records.sort((a,b) => a.timestamp - b.timestamp); }
+
+function getActiveShift(){
+  const open = records.filter(r => r.type === 'shift' && !r.data.endTime);
+  return open.length ? open[open.length - 1] : null;
+}
+function getActiveCaregiverId(){ const s = getActiveShift(); return s ? s.data.caregiver : null; }
+function startShift(caregiverId, startTime){
+  records.filter(r => r.type === 'shift' && !r.data.endTime).forEach(s => { s.data.endTime = startTime || Date.now(); });
+  records.push({ id:newId(), timestamp: startTime || Date.now(), type:'shift', data:{ caregiver: caregiverId, endTime: null }, notes:'' });
+  sortRecords(); saveRecords();
+}
+function quickStartShift(cgId){
+  const cg = cgById(cgId); if (!cg) return;
+  startShift(cgId); qmSetCg(cgId); renderAll();
+  showToast(`${cg.short} 간병 시작`, 'success');
+}
+function endActiveShift(){
+  const s = getActiveShift();
+  if (!s){ showToast('진행 중인 간병이 없습니다', 'warn'); return; }
+  if (!confirm(`${cgName(s.data.caregiver)} 간병을 종료할까요?`)) return;
+  s.data.endTime = Date.now(); saveRecords(); renderAll();
+  showToast('간병 종료', 'success');
+}
+
+// ====== 임계값 ======
+const TH = { temp:[37.5, 38.0, 38.5], spo2:[94, 92, 90], hr:[100, 110, 120], rr:[20, 23, 24] };
+function statusOf(metric, val){
+  if (val == null || isNaN(val)) return null;
+  if (metric === 'temp'){ if (val >= 38.0) return 'danger'; if (val >= 37.2) return 'warn'; return 'normal'; }
+  if (metric === 'rr'){ if (val >= 26) return 'danger'; if (val >= 22) return 'warn'; return 'normal'; }
+  if (metric === 'hr'){ if (val >= 110) return 'danger'; if (val >= 90) return 'warn'; return 'normal'; }
+  if (metric === 'spo2'){ if (val < 95) return 'danger'; if (val < 97) return 'warn'; return 'normal'; }
+  if (metric === 'sbp'){ if (val >= 160) return 'danger'; if (val >= 140) return 'warn'; return 'normal'; }
+  return null;
+}
+function bloodStatus(key, val){
+  if (val == null || isNaN(val)) return null;
+  if (key === 'wbc'){ if (val < 1000) return 'danger'; if (val < 2000) return 'alert'; if (val < 4000) return 'warn'; return 'normal'; }
+  if (key === 'hb'){ if (val < 7) return 'danger'; if (val < 8) return 'alert'; if (val < 10) return 'warn'; return 'normal'; }
+  if (key === 'plt'){ if (val < 20) return 'danger'; if (val < 50) return 'alert'; if (val < 100) return 'warn'; return 'normal'; }
+  if (key === 'anc'){ if (val < 500) return 'danger'; if (val < 1000) return 'alert'; if (val < 1500) return 'warn'; return 'normal'; }
+  return null;
+}
+
+// ====== 시간 표시 ======
+function fmtTime(ts){
+  const d = new Date(ts), now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const hh = String(d.getHours()).padStart(2,'0'), mm = String(d.getMinutes()).padStart(2,'0');
+  if (sameDay) return `${hh}:${mm}`;
+  return `${d.getMonth()+1}/${d.getDate()} ${hh}:${mm}`;
+}
+function fmtElapsed(ts){
+  const min = Math.floor((Date.now() - ts)/60000);
+  if (min < 1) return '방금'; if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min/60); if (hr < 24) return `${hr}시간 전`;
+  return `${Math.floor(hr/24)}일 전`;
+}
+function fmtDuration(ms){
+  const min = Math.floor(ms/60000); if (min < 60) return `${min}분`;
+  const hr = Math.floor(min/60); const rem = min % 60;
+  return rem ? `${hr}시간 ${rem}분` : `${hr}시간`;
+}
+function fmtDateTime(ts){
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function localDateTimeInput(d){
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function todayStart(){ const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); }
+function todayEnd(){ return todayStart() + 24*3600*1000; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ====== 시드: 오늘 새벽 5시 혈액 수치 ======
+function seedTodayBloodIfMissing(){
+  const tStart = todayStart(), tEnd = todayEnd();
+  const todayBloods = records.filter(r => r.type === 'blood' && r.timestamp >= tStart && r.timestamp < tEnd);
+  if (todayBloods.length > 0) return;
+  const seedFlag = localStorage.getItem('mds_seeded_blood_'+new Date().toISOString().slice(0,10));
+  if (seedFlag) return;
+  const fiveAm = new Date(); fiveAm.setHours(5,0,0,0);
+  records.push({
+    id: newId(), timestamp: fiveAm.getTime(), type:'blood',
+    data:{ caregiver: null, wbc: 4460, hb: 9.0, plt: 37, anc: 2010, crp: null },
+    notes:'정기 채혈 (자동 입력)'
+  });
+  sortRecords(); saveRecords();
+  localStorage.setItem('mds_seeded_blood_'+new Date().toISOString().slice(0,10), '1');
+}
+
+// ====== 프로필 혈구수치 ======
+function renderBloodCard(){
+  const row = document.getElementById('profile-blood');
+  const timeEl = document.getElementById('profile-blood-time');
+  const bloods = records.filter(r => r.type === 'blood').sort((a,b) => b.timestamp - a.timestamp);
+  if (bloods.length === 0){
+    row.innerHTML = '<span class="blood-chip" style="background:#e2e8f0">기록 없음</span>';
+    timeEl.textContent = '';
+    return;
+  }
+  const latest = bloods[0]; const d = latest.data;
+  const chips = [
+    { key:'wbc', label:'WBC', val: d.wbc, fmt: v => v },
+    { key:'hb',  label:'Hb',  val: d.hb,  fmt: v => v },
+    { key:'plt', label:'PLT', val: d.plt, fmt: v => v + 'K' },
+    { key:'anc', label:'ANC', val: d.anc, fmt: v => v },
+  ];
+  row.innerHTML = chips.map(c => {
+    if (c.val == null) return '';
+    const s = bloodStatus(c.key, c.val);
+    const cls = s && s !== 'normal' ? ` ${s}` : ' normal';
+    return `<span class="blood-chip${cls}"><span class="lbl">${c.label}</span>${c.fmt(c.val)}</span>`;
+  }).filter(Boolean).join('');
+  timeEl.textContent = `${fmtDateTime(latest.timestamp)} 채혈`;
+}
+
+// ====== 오늘 활력징후 통합 차트 ======
+let dashCharts = {};
+function renderTodayCharts(){
+  const ctx = document.getElementById('chart-vitals').getContext('2d');
+  if (dashCharts.vitals) dashCharts.vitals.destroy();
+  const tStart = todayStart(), tEnd = todayEnd();
+  const vitals = records.filter(r => r.type === 'vital' && r.timestamp >= tStart && r.timestamp < tEnd);
+  const notes = records.filter(r => r.type === 'note' && r.timestamp >= tStart && r.timestamp < tEnd);
+
+  const tempPts = vitals.filter(r => r.data.temp != null).map(r => ({ x: r.timestamp, y: r.data.temp, cg: r.data.caregiver }));
+  const hrPts   = vitals.filter(r => r.data.hr   != null).map(r => ({ x: r.timestamp, y: r.data.hr,   cg: r.data.caregiver }));
+  const rrPts   = vitals.filter(r => r.data.rr   != null).map(r => ({ x: r.timestamp, y: r.data.rr,   cg: r.data.caregiver }));
+  const sbpPts  = vitals.filter(r => r.data.sbp  != null).map(r => ({ x: r.timestamp, y: r.data.sbp,  cg: r.data.caregiver }));
+  const dbpPts  = vitals.filter(r => r.data.dbp  != null).map(r => ({ x: r.timestamp, y: r.data.dbp,  cg: r.data.caregiver }));
+
+  // threshold + symptom markers plugin
+  const overlayPlugin = {
+    id: 'overlays',
+    afterDraw(chart){
+      const { ctx, chartArea, scales } = chart;
+      ctx.save();
+      // Threshold lines
+      ctx.setLineDash([3,3]);
+      ctx.lineWidth = 1;
+      if (scales.yTemp){
+        [[37.2, '#facc15'], [38.0, '#ef4444']].forEach(([th, color]) => {
+          const y = scales.yTemp.getPixelForValue(th);
+          if (y >= chartArea.top && y <= chartArea.bottom){
+            ctx.strokeStyle = color;
+            ctx.beginPath(); ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y); ctx.stroke();
+            ctx.fillStyle = color === '#facc15' ? '#a16207' : '#b91c1c';
+            ctx.font = '9px -apple-system, sans-serif';
+            ctx.fillText(th + '℃', chartArea.left + 2, y - 3);
+          }
+        });
+      }
+      if (scales.yRight){
+        [[22, '#fbbf24'], [26, '#8b5cf6'], [90, '#10b981'], [110, '#dc2626']].forEach(([th, color]) => {
+          const y = scales.yRight.getPixelForValue(th);
+          if (y >= chartArea.top && y <= chartArea.bottom){
+            ctx.strokeStyle = color; ctx.globalAlpha = 0.4;
+            ctx.beginPath(); ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y); ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        });
+      }
+      // 특이사항 세로 마커
+      ctx.setLineDash([2,3]);
+      ctx.lineWidth = 1.2;
+      notes.forEach((n, i) => {
+        const x = scales.x.getPixelForValue(n.timestamp);
+        if (x < chartArea.left || x > chartArea.right) return;
+        ctx.strokeStyle = '#f59e0b';
+        ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.stroke();
+        // 삼각형 마커
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x - 4, chartArea.top - 5);
+        ctx.lineTo(x + 4, chartArea.top - 5);
+        ctx.closePath();
+        ctx.fill();
+        // 번호
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 8px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(i+1, x, chartArea.top - 7);
+        ctx.setLineDash([2,3]);
+      });
+      ctx.restore();
+    }
+  };
+
+  const mkDataset = (label, pts, color, axis, opts={}) => ({
+    label, data: pts, yAxisID: axis,
+    borderColor: color, backgroundColor: color + '20',
+    pointBackgroundColor: pts.map(p => cgColor(p.cg)),
+    pointBorderColor: '#fff', pointBorderWidth: 2,
+    pointRadius: 5, pointHoverRadius: 7,
+    tension: 0.25, fill: false, spanGaps: true, ...opts
+  });
+
+  const datasets = [];
+  if (tempPts.length) datasets.push(mkDataset('체온', tempPts, '#ef4444', 'yTemp', { pointStyle:'circle' }));
+  if (hrPts.length)   datasets.push(mkDataset('맥박', hrPts, '#10b981', 'yRight', { pointStyle:'triangle' }));
+  if (rrPts.length)   datasets.push(mkDataset('호흡수', rrPts, '#8b5cf6', 'yRight', { pointStyle:'rect' }));
+  if (sbpPts.length)  datasets.push(mkDataset('수축기', sbpPts, '#3b82f6', 'yRight', { pointStyle:'rectRot', borderDash:[5,3] }));
+  if (dbpPts.length)  datasets.push(mkDataset('이완기', dbpPts, '#94a3b8', 'yRight', { pointStyle:'rectRot', borderDash:[5,3] }));
+  if (datasets.length === 0) datasets.push({ label:'체온', data:[], yAxisID:'yTemp', borderColor:'#ef4444' });
+
+  dashCharts.vitals = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const d = new Date(items[0].parsed.x);
+              return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            },
+            label: (item) => {
+              const p = item.raw;
+              const cg = p.cg ? cgById(p.cg) : null;
+              const who = cg ? ` (${cg.short})` : '';
+              const unit = item.dataset.label === '체온' ? '℃' : '';
+              return `${item.dataset.label}: ${p.y}${unit}${who}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { type:'time', min:tStart, max:tEnd,
+          time:{ unit:'hour', stepSize:4, displayFormats:{ hour:'H시' } },
+          ticks:{ font:{size:10}, color:'#64748b' }, grid:{ color:'#f1f5f9' }
+        },
+        yTemp: { type:'linear', position:'left', min:35.5, max:40,
+          ticks:{ stepSize:0.5, font:{size:10}, color:'#ef4444', callback: v => v + '℃' },
+          grid:{ color:'#fee2e2' }
+        },
+        yRight: { type:'linear', position:'right', min:0, max:180,
+          ticks:{ stepSize:30, font:{size:10}, color:'#64748b' },
+          grid:{ drawOnChartArea:false }
+        }
+      }
+    },
+    plugins: [overlayPlugin]
+  });
+}
+
+// ====== 오늘 특이사항 ======
+function renderTodaySymptoms(){
+  const el = document.getElementById('today-symptoms');
+  const countEl = document.getElementById('symptom-count');
+  const tStart = todayStart(), tEnd = todayEnd();
+  const symptoms = records.filter(r => r.type === 'note' && r.timestamp >= tStart && r.timestamp < tEnd);
+  countEl.textContent = symptoms.length ? `${symptoms.length}건` : '';
+  if (symptoms.length === 0){
+    el.innerHTML = '<div class="empty-state">오늘 입력된 특이사항 없음</div>';
+    return;
+  }
+  el.innerHTML = symptoms.map((s, i) => {
+    const cg = s.data.caregiver ? cgById(s.data.caregiver) : null;
+    const cgTag = cg ? `<span class="cg-tag" style="background:${cg.color}">${cg.short}</span>` : '';
+    return `<div class="symptom-item">
+      <div class="symptom-time">${fmtTime(s.timestamp)}</div>
+      <div class="symptom-content"><strong style="color:#f59e0b">#${i+1}</strong> ${escapeHtml(s.data.text)}${cgTag}
+        <button class="delete-btn" onclick="confirmDelete('${s.id}')">삭제</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ====== 활성 간병 ======
+function renderActiveShiftBanner(){
+  const banner = document.getElementById('active-shift-banner');
+  const s = getActiveShift();
+  if (s){
+    const cg = cgById(s.data.caregiver);
+    const dur = fmtDuration(Date.now() - s.timestamp);
+    banner.className = 'active-shift-banner has';
+    banner.style.borderLeft = `4px solid ${cg.color}`;
+    banner.innerHTML = `<div class="active-shift-info">
+      <div class="who"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cg.color};margin-right:6px;vertical-align:middle"></span>${cg.name} (${cg.short})</div>
+      <div class="duration">${fmtTime(s.timestamp)} 시작 · ${dur}째</div>
+    </div>
+    <button class="end-shift-btn" onclick="endActiveShift()">종료</button>`;
+  } else {
+    banner.className = 'active-shift-banner';
+    banner.style.borderLeft = '';
+    banner.innerHTML = `<div class="active-shift-info"><div class="who" style="color:#94a3b8">간병 중인 사람 없음</div><div class="duration">아래 버튼으로 시작</div></div>`;
+  }
+}
+
+// ====== 최근 약 / 한 줄 요약 ======
+function renderRecentMeds(){
+  const el = document.getElementById('recent-meds');
+  const meds = records.filter(r => r.type === 'med' || r.type === 'transfusion').slice(-5).reverse();
+  if (meds.length === 0){ el.className='empty-state'; el.textContent='아직 기록 없음'; return; }
+  el.className = '';
+  el.innerHTML = meds.map(m => {
+    const badgeClass = m.type === 'transfusion' ? 'transfusion' : 'med';
+    const badgeText = m.type === 'transfusion' ? '수혈' : '약';
+    const cg = m.data.caregiver ? cgById(m.data.caregiver) : null;
+    const cgTag = cg ? `<span class="caregiver-tag" style="background:${cg.color}">${cg.short}</span>` : '';
+    const note = m.notes ? ` <span style="color:#94a3b8">— ${escapeHtml(m.notes)}</span>` : '';
+    return `<div class="timeline-item"><div class="timeline-time">${fmtTime(m.timestamp)}</div><div class="timeline-content"><span class="timeline-badge ${badgeClass}">${badgeText}</span>${escapeHtml(m.data.name || '')}${cgTag}${note}<button class="delete-btn" onclick="confirmDelete('${m.id}')">삭제</button></div></div>`;
+  }).join('');
+}
+function renderDailySummary(){
+  const el = document.getElementById('daily-summary');
+  const tStart = todayStart(), tEnd = todayEnd();
+  const tv = records.filter(r => r.type === 'vital' && r.timestamp >= tStart && r.timestamp < tEnd);
+  const tm = records.filter(r => r.type === 'med' && r.timestamp >= tStart && r.timestamp < tEnd);
+  const ts = records.filter(r => r.type === 'note' && r.timestamp >= tStart && r.timestamp < tEnd);
+  const temps = tv.filter(r => r.data.temp != null).map(r => r.data.temp);
+  const rrs = tv.filter(r => r.data.rr != null).map(r => r.data.rr);
+  const parts = [];
+  if (temps.length){ parts.push(`체온 ${Math.min(...temps)}~${Math.max(...temps)}℃ (${temps.length}회)`); }
+  if (rrs.length){ parts.push(`호흡 ${Math.min(...rrs)}~${Math.max(...rrs)} (${rrs.length}회)`); }
+  if (tm.length) parts.push(`투약 ${tm.length}건`);
+  if (ts.length) parts.push(`특이 ${ts.length}건`);
+  el.textContent = parts.length ? parts.join(' · ') : '기록을 입력하면 자동 요약됩니다.';
+}
+
+function renderAlertBanner(){
+  const area = document.getElementById('alert-area');
+  area.innerHTML = '';
+  const latestVital = [...records].reverse().find(r => r.type === 'vital');
+  if (!latestVital) return;
+  if (Date.now() - latestVital.timestamp > 3600000) return;
+  const d = latestVital.data;
+  const alerts = [];
+  if (statusOf('temp', d.temp) === 'danger') alerts.push({lvl:'danger', msg:`체온 ${d.temp}℃ — 38.5℃ 이상. 간호사 호출 기준`});
+  else if (statusOf('temp', d.temp) === 'alert') alerts.push({lvl:'warn', msg:`체온 ${d.temp}℃ — 해열제 후 2~3시간 흐름 확인`});
+  if (statusOf('rr', d.rr) === 'danger') alerts.push({lvl:'danger', msg:`호흡수 ${d.rr}/분 — 24회↑ 즉시 호출`});
+  if (statusOf('spo2', d.spo2) === 'danger') alerts.push({lvl:'danger', msg:`SpO₂ ${d.spo2}% — 응급`});
+  for (const a of alerts){
+    const div = document.createElement('div');
+    div.className = 'alert-banner' + (a.lvl === 'warn' ? ' warn' : '');
+    div.textContent = a.msg;
+    area.appendChild(div);
+  }
+}
+
+// ====== 빠른 측정 입력 (qm-prefixed) ======
+const QM_PRESETS = {
+  temp: { values:[36.5, 36.6, 36.7, 36.8, 36.9, 37.0, 37.1, 37.2, 37.3, 37.4, 37.5, 37.6, 37.7, 37.8, 37.9, 38.0, 38.1, 38.2, 38.3, 38.4, 38.5, 38.6, 38.7, 38.8, 38.9, 39.0, 39.1, 39.2, 39.3, 39.4, 39.5], step:0.1, decimal:1 },
+  rr:   { values:[12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40], step:1, decimal:0 },
+  hr:   { values:[60, 70, 80, 90, 100, 110, 120, 130, 140], step:5, decimal:0 },
+  spo2: { values:[94, 95, 96, 97, 98, 99, 100], step:1, decimal:0 },
+  sbp:  { values:[100, 110, 120, 130, 140, 150, 160, 170, 180], step:5, decimal:0 },
+  dbp:  { values:[60, 65, 70, 75, 80, 85, 90, 95, 100], step:5, decimal:0 },
+};
+const qmState = { temp:null, rr:null, hr:null, spo2:null, sbp:null, dbp:null, cg:null, time:null };
+
+function qmStatusOf(metric, val){
+  if (metric === 'dbp') return null;
+  return statusOf(metric, val);
+}
+function renderQmPresets(){
+  ['temp','rr','hr','spo2','sbp','dbp'].forEach(metric => {
+    const presets = QM_PRESETS[metric];
+    const el = document.getElementById(`qm-${metric}-presets`);
+    if (!el) return;
+    const selectedVal = qmState[metric];
+    el.innerHTML = presets.values.map(v => {
+      const isSel = selectedVal != null && Math.abs(v - selectedVal) < 0.001;
+      const status = qmStatusOf(metric, v);
+      let cls = '';
+      if (status === 'danger') cls = ' danger';
+      else if (status === 'alert' || status === 'warn') cls = ' warn';
+      if (isSel) cls += ' selected';
+      let label = presets.decimal ? v.toFixed(presets.decimal) : v;
+      if (metric === 'sbp' && v === 180) label = '180+';
+      return `<button class="${cls.trim()}" onclick="qmSet('${metric}',${v})">${label}</button>`;
+    }).join('');
+  });
+}
+function qmUpdateDisplays(){
+  document.getElementById('qm-temp-val').textContent = qmState.temp != null ? qmState.temp.toFixed(1) : '—';
+  document.getElementById('qm-rr-val').textContent = qmState.rr != null ? qmState.rr : '—';
+  document.getElementById('qm-hr-val').textContent = qmState.hr != null ? qmState.hr : '—';
+  document.getElementById('qm-spo2-val').textContent = qmState.spo2 != null ? qmState.spo2 : '—';
+  document.getElementById('qm-bp-val').textContent =
+    (qmState.sbp != null || qmState.dbp != null) ? `${qmState.sbp ?? '—'} / ${qmState.dbp ?? '—'}` : '—';
+}
+function qmSet(metric, val){
+  if (qmState[metric] === val){ qmState[metric] = null; }
+  else { qmState[metric] = val; }
+  renderQmPresets(); qmUpdateDisplays();
+}
+function qmAdj(metric, delta){
+  const presets = QM_PRESETS[metric];
+  const current = qmState[metric];
+  const base = current != null ? current : (metric === 'temp' ? 37.0 : (metric === 'rr' ? 16 : (metric === 'hr' ? 80 : (metric === 'spo2' ? 98 : 120))));
+  let v = base + delta;
+  v = Math.round(v * Math.pow(10, presets.decimal)) / Math.pow(10, presets.decimal);
+  qmState[metric] = v;
+  renderQmPresets(); qmUpdateDisplays();
+}
+function qmClear(metric){
+  if (metric === 'bp'){ qmState.sbp = null; qmState.dbp = null; }
+  else qmState[metric] = null;
+  renderQmPresets(); qmUpdateDisplays();
+}
+function qmSetCg(cgId){
+  qmState.cg = cgId;
+  document.querySelectorAll('#qm-cg-btns button').forEach(b => {
+    const active = b.dataset.cg === cgId;
+    b.classList.toggle('active', active);
+    const cg = cgById(b.dataset.cg);
+    b.style.background = active && cg ? cg.color : '';
+    b.style.borderColor = active && cg ? cg.color : '';
+    b.style.color = active ? 'white' : '';
+  });
+}
+function qmEditTime(){
+  const dt = qmState.time || new Date();
+  const val = prompt('시각 (HH:MM 형식, 비우면 지금):', `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`);
+  if (val === null) return;
+  if (!val.trim()){ qmState.time = null; updateQmTimeDisplay(); return; }
+  const m = val.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m){ showToast('HH:MM 형식으로 입력', 'warn'); return; }
+  const h = parseInt(m[1]), min = parseInt(m[2]);
+  const today = new Date(); today.setHours(h, min, 0, 0);
+  qmState.time = today;
+  updateQmTimeDisplay();
+}
+function updateQmTimeDisplay(){
+  const el = document.getElementById('qm-time-display');
+  if (qmState.time){
+    el.textContent = `${String(qmState.time.getHours()).padStart(2,'0')}:${String(qmState.time.getMinutes()).padStart(2,'0')}`;
+  } else {
+    el.textContent = '지금';
+  }
+}
+function qmSave(){
+  const noteText = document.getElementById('qm-note').value.trim();
+  const hasVital = ['temp','rr','hr','spo2','sbp','dbp'].some(k => qmState[k] != null);
+  if (!hasVital && !noteText){ showToast('수치 또는 특이사항을 입력하세요', 'warn'); return; }
+  const ts = qmState.time ? qmState.time.getTime() : Date.now();
+  const cg = qmState.cg || getActiveCaregiverId();
+  if (hasVital){
+    records.push({
+      id: newId(), timestamp: ts, type:'vital',
+      data: { caregiver: cg, temp: qmState.temp, spo2: qmState.spo2, hr: qmState.hr, rr: qmState.rr, sbp: qmState.sbp, dbp: qmState.dbp },
+      notes: noteText && !hasVital ? '' : ''
+    });
+  }
+  if (noteText){
+    records.push({
+      id: newId(), timestamp: ts, type:'note',
+      data: { caregiver: cg, text: noteText }, notes: ''
+    });
+  }
+  sortRecords(); saveRecords();
+  // Reset
+  qmState.temp = qmState.rr = qmState.hr = qmState.spo2 = qmState.sbp = qmState.dbp = null;
+  qmState.time = null;
+  document.getElementById('qm-note').value = '';
+  document.getElementById('qm-note').classList.remove('show');
+  updateQmTimeDisplay();
+  renderQmPresets(); qmUpdateDisplays();
+  renderAll();
+  showToast('저장됨', 'success');
+}
+
+function qmConfirmMetric(metricKey){
+  const data = { caregiver: qmState.cg || getActiveCaregiverId(), temp:null, spo2:null, hr:null, rr:null, sbp:null, dbp:null };
+  let hasValue = false;
+  if (metricKey === 'bp'){
+    if (qmState.sbp != null){ data.sbp = qmState.sbp; hasValue = true; }
+    if (qmState.dbp != null){ data.dbp = qmState.dbp; hasValue = true; }
+  } else {
+    if (qmState[metricKey] != null){ data[metricKey] = qmState[metricKey]; hasValue = true; }
+  }
+  if (!hasValue){ showToast('값을 먼저 선택하세요', 'warn'); return; }
+  const ts = qmState.time ? qmState.time.getTime() : Date.now();
+  records.push({ id:newId(), timestamp:ts, type:'vital', data, notes:'' });
+  sortRecords(); saveRecords();
+  if (metricKey === 'bp'){ qmState.sbp = null; qmState.dbp = null; }
+  else qmState[metricKey] = null;
+  renderQmPresets(); qmUpdateDisplays();
+  renderAll();
+  const labels = {temp:'체온', rr:'호흡수', hr:'맥박', spo2:'SpO₂', bp:'혈압'};
+  showToast(`${labels[metricKey] || metricKey} 저장됨`, 'success');
+}
+
+// ====== 히스토리 ======
+let historyFilter = 'all';
+function renderHistory(){
+  const el = document.getElementById('history-list');
+  let filtered = records.slice().reverse();
+  if (historyFilter !== 'all') filtered = filtered.filter(r => r.type === historyFilter);
+  if (filtered.length === 0){ el.innerHTML = '<div class="empty-state">기록 없음</div>'; return; }
+  el.innerHTML = filtered.map(r => {
+    const badgeClass = r.type;
+    const badgeText = ({vital:'활력', med:'약', blood:'혈액', transfusion:'수혈', note:'특이', shift:'간병'})[r.type] || r.type;
+    let content = '';
+    if (r.type === 'vital'){
+      const p = [];
+      if (r.data.temp != null) p.push(`체온 ${r.data.temp}℃`);
+      if (r.data.spo2 != null) p.push(`SpO₂ ${r.data.spo2}%`);
+      if (r.data.hr != null) p.push(`맥박 ${r.data.hr}`);
+      if (r.data.rr != null) p.push(`호흡 ${r.data.rr}`);
+      if (r.data.sbp != null) p.push(`BP ${r.data.sbp}/${r.data.dbp ?? '?'}`);
+      content = p.join(' · ');
+    } else if (r.type === 'med'){
+      content = (r.data.name || '') + (r.data.dose ? ` ${r.data.dose}` : '');
+    } else if (r.type === 'blood'){
+      const p = [];
+      if (r.data.wbc != null) p.push(`WBC ${r.data.wbc}`);
+      if (r.data.hb != null) p.push(`Hb ${r.data.hb}`);
+      if (r.data.plt != null) p.push(`PLT ${r.data.plt}K`);
+      if (r.data.anc != null) p.push(`ANC ${r.data.anc}`);
+      content = p.join(' · ');
+    } else if (r.type === 'transfusion'){
+      content = (r.data.name || '') + (r.data.unit ? ` ${r.data.unit}` : '');
+    } else if (r.type === 'note'){
+      content = r.data.text || '';
+    } else if (r.type === 'shift'){
+      const cg = cgById(r.data.caregiver);
+      const end = r.data.endTime;
+      content = end ? `${cg ? cg.short : '?'} 간병 (${fmtTime(r.timestamp)}~${fmtTime(end)})`
+                    : `${cg ? cg.short : '?'} 간병 시작 (진행 중)`;
+    }
+    let cgTag = '';
+    if (r.type !== 'shift' && r.data.caregiver){
+      const cg = cgById(r.data.caregiver);
+      if (cg) cgTag = `<span class="caregiver-tag" style="background:${cg.color}">${cg.short}</span>`;
+    }
+    if (r.notes && r.type !== 'note') content += ` <span style="color:#94a3b8">— ${escapeHtml(r.notes)}</span>`;
+    return `<div class="timeline-item"><div class="timeline-time">${fmtTime(r.timestamp)}</div><div class="timeline-content"><span class="timeline-badge ${badgeClass}">${badgeText}</span>${content}${cgTag}<button class="delete-btn" onclick="confirmDelete('${r.id}')">삭제</button></div></div>`;
+  }).join('');
+}
+function confirmDelete(id){
+  if (confirm('삭제할까요?')){ deleteRecord(id); renderAll(); showToast('삭제됨'); }
+}
+
+// ====== 장기 추이 차트 ======
+let chartRange = 3, chartInstances = {};
+function renderCharts(){
+  const cutoff = chartRange === 'all' ? 0 : Date.now() - (chartRange * 86400000);
+  const vitals = records.filter(r => r.type === 'vital' && r.timestamp >= cutoff);
+  const bloods = records.filter(r => r.type === 'blood' && r.timestamp >= cutoff);
+  drawLine('chart-temp', vitals, 'temp', '체온 (℃)', '#ef4444');
+  drawLine('chart-rr', vitals, 'rr', '호흡수', '#8b5cf6');
+  drawLine('chart-hr', vitals, 'hr', '맥박', '#f59e0b');
+  drawLine('chart-spo2', vitals, 'spo2', 'SpO₂ (%)', '#0ea5e9');
+  drawBlood('chart-blood', bloods);
+}
+function drawLine(canvasId, data, key, label, color){
+  const pts = data.filter(r => r.data[key] != null).map(r => ({x: r.timestamp, y: r.data[key], cg: r.data.caregiver}));
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+  chartInstances[canvasId] = new Chart(ctx, {
+    type:'line',
+    data:{ datasets:[{ label, data:pts, borderColor:color, backgroundColor:color+'22', tension:0.25, pointRadius:4,
+      pointBackgroundColor: pts.map(p => cgColor(p.cg)), pointBorderColor:'#fff', pointBorderWidth:2, fill:true }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} },
+      scales:{ x:{ type:'time', time:{ unit: chartRange<=1 ? 'hour' : 'day', displayFormats:{hour:'HH:mm', day:'M/d'}}, ticks:{maxTicksLimit:6, font:{size:10}}, grid:{color:'#f1f5f9'} },
+               y:{ ticks:{font:{size:10}}, grid:{color:'#f1f5f9'} } }
+    }
+  });
+}
+function drawBlood(canvasId, data){
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+  const series = [
+    {key:'hb', label:'Hb', color:'#dc2626'},
+    {key:'plt', label:'PLT(K)', color:'#7c3aed'},
+    {key:'anc', label:'ANC/100', color:'#0ea5e9'},
+    {key:'wbc', label:'WBC/1000', color:'#16a34a'},
+  ];
+  const datasets = series.map(s => ({
+    label: s.label,
+    data: data.filter(r => r.data[s.key] != null).map(r => {
+      let y = r.data[s.key];
+      if (s.key === 'anc') y = y/100;
+      if (s.key === 'wbc') y = y/1000;
+      return {x: r.timestamp, y};
+    }),
+    borderColor: s.color, backgroundColor: s.color+'22', tension:0.25, pointRadius:3, fill:false
+  }));
+  chartInstances[canvasId] = new Chart(ctx, {
+    type:'line', data:{ datasets },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:true, position:'bottom', labels:{font:{size:11}, boxWidth:10}} },
+      scales:{ x:{ type:'time', time:{ unit:'day', displayFormats:{day:'M/d'}}, ticks:{maxTicksLimit:6, font:{size:10}}, grid:{color:'#f1f5f9'} },
+               y:{ ticks:{font:{size:10}}, grid:{color:'#f1f5f9'} } }}
+  });
+}
+
+// ====== 모달 폼 (특이사항, 약, 혈액) ======
+const DEFAULT_MED_PRESETS = ['해열제 (낙센에프)','해열제 (타이레놀)','진통제','항생제','항진균제','항응고제','호중구 증강제','산소치료','수액','칼륨','아미카신'];
+function loadMedPresets(){
+  try { const s = localStorage.getItem('mds_med_presets'); if (s) return JSON.parse(s); } catch(e){}
+  return DEFAULT_MED_PRESETS.slice();
+}
+function saveMedPresets(arr){ localStorage.setItem('mds_med_presets', JSON.stringify(arr)); }
+let MED_PRESETS = loadMedPresets();
+let medEditMode = false;
+
+function openNoteForm(){
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header"><h3>특이사항 입력</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="form-row"><label>시각</label><input type="datetime-local" id="n-time" value="${localDateTimeInput()}"></div>
+    <div class="form-row"><label>기록자</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+        ${CAREGIVERS.map(c => `<button type="button" data-cg="${c.id}" onclick="modalSelectCg(this,'${c.id}','${c.color}')" style="padding:10px 6px;border:1px solid #e2e8f0;background:white;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#475569">${c.short}</button>`).join('')}
+      </div>
+      <input type="hidden" id="modal-cg" value="${getActiveCaregiverId() || ''}">
+    </div>
+    <div class="form-row"><label>내용</label><textarea id="n-text" placeholder="예: 가래에 피 섞임, 오른쪽 옆구리 통증 등"></textarea></div>
+    <button class="btn-primary" onclick="saveNote()">저장</button>`;
+  // Preselect current caregiver
+  const cur = getActiveCaregiverId();
+  if (cur){ const btn = modal.querySelector(`button[data-cg="${cur}"]`); if (btn){ const cg = cgById(cur); btn.style.background=cg.color; btn.style.borderColor=cg.color; btn.style.color='white'; }}
+  showModal();
+}
+function modalSelectCg(btn, cgId, color){
+  btn.parentElement.querySelectorAll('button').forEach(b => { b.style.background=''; b.style.borderColor=''; b.style.color='#475569'; });
+  btn.style.background = color; btn.style.borderColor = color; btn.style.color = 'white';
+  document.getElementById('modal-cg').value = cgId;
+}
+function saveNote(){
+  const t = document.getElementById('n-time').value;
+  const text = document.getElementById('n-text').value.trim();
+  if (!text){ showToast('내용을 입력하세요', 'warn'); return; }
+  const cg = document.getElementById('modal-cg').value || null;
+  records.push({ id:newId(), timestamp: t ? new Date(t).getTime() : Date.now(), type:'note',
+    data:{caregiver:cg, text}, notes:'' });
+  sortRecords(); saveRecords(); closeModal(); renderAll();
+  showToast('저장됨', 'success');
+}
+
+function openMedForm(){
+  medEditMode = false;
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header"><h3>약 / 처치</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="form-row"><label>시각</label><input type="datetime-local" id="m-time" value="${localDateTimeInput()}"></div>
+    <div class="form-row"><label>기록자</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+        ${CAREGIVERS.map(c => `<button type="button" data-cg="${c.id}" onclick="modalSelectCg(this,'${c.id}','${c.color}')" style="padding:10px 6px;border:1px solid #e2e8f0;background:white;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#475569">${c.short}</button>`).join('')}
+      </div>
+      <input type="hidden" id="modal-cg" value="${getActiveCaregiverId() || ''}">
+    </div>
+    <div class="form-row">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <label style="margin:0">약 종류</label>
+        <button type="button" id="med-edit-toggle" onclick="toggleMedEditMode()" style="background:#fef3c7;border:1px solid #fbbf24;color:#92400e;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">✎ 셀 편집</button>
+      </div>
+      <div class="med-grid" id="med-grid"></div>
+      <div id="med-add-row" style="display:none;margin-top:8px;gap:6px">
+        <div style="display:flex;gap:6px">
+          <input type="text" id="med-new-name" placeholder="새 약 / 처치 이름" style="flex:1;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;font-family:inherit">
+          <button type="button" onclick="addMedPreset()" style="background:#16a34a;color:white;border:none;padding:0 14px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit">+ 추가</button>
+        </div>
+      </div>
+      <input type="text" id="m-name" placeholder="직접 입력 가능" style="margin-top:8px">
+    </div>
+    <div class="form-row"><label>용량 / 메모</label><input type="text" id="m-dose" placeholder="예: 500mg, IV"></div>
+    <button class="btn-primary" onclick="saveMed()">저장</button>`;
+  const cur = getActiveCaregiverId();
+  if (cur){ const btn = modal.querySelector(`button[data-cg="${cur}"]`); if (btn){ const cg = cgById(cur); btn.style.background=cg.color; btn.style.borderColor=cg.color; btn.style.color='white'; }}
+  renderMedPresets();
+  showModal();
+}
+
+function renderMedPresets(){
+  const grid = document.getElementById('med-grid');
+  const addRow = document.getElementById('med-add-row');
+  if (!grid) return;
+  if (medEditMode){
+    grid.innerHTML = MED_PRESETS.map((m, i) => `
+      <div style="display:flex;align-items:center;gap:4px;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:6px 4px 6px 10px;font-size:12px;color:#854d0e;font-weight:600">
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(m)}</span>
+        <button type="button" onclick="renameMedPreset(${i})" style="background:#3b82f6;color:white;border:none;width:24px;height:24px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;flex-shrink:0">✎</button>
+        <button type="button" onclick="deleteMedPreset(${i})" style="background:#dc2626;color:white;border:none;width:24px;height:24px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;flex-shrink:0">×</button>
+      </div>
+    `).join('');
+    if (addRow) addRow.style.display = 'block';
+  } else {
+    grid.innerHTML = MED_PRESETS.map(m => `<button type="button" class="med-btn" onclick="selectMed(this,${JSON.stringify(m)})">${escapeHtml(m)}</button>`).join('');
+    if (addRow) addRow.style.display = 'none';
+  }
+}
+function toggleMedEditMode(){
+  medEditMode = !medEditMode;
+  const btn = document.getElementById('med-edit-toggle');
+  if (btn){
+    btn.textContent = medEditMode ? '완료' : '✎ 셀 편집';
+    btn.style.background = medEditMode ? '#16a34a' : '#fef3c7';
+    btn.style.color = medEditMode ? 'white' : '#92400e';
+    btn.style.borderColor = medEditMode ? '#16a34a' : '#fbbf24';
+  }
+  renderMedPresets();
+}
+function addMedPreset(){
+  const inp = document.getElementById('med-new-name');
+  const name = inp.value.trim();
+  if (!name){ showToast('이름을 입력하세요', 'warn'); return; }
+  if (MED_PRESETS.includes(name)){ showToast('이미 있는 항목', 'warn'); return; }
+  MED_PRESETS.push(name);
+  saveMedPresets(MED_PRESETS);
+  inp.value = '';
+  renderMedPresets();
+  showToast('추가됨', 'success');
+}
+function deleteMedPreset(idx){
+  const name = MED_PRESETS[idx];
+  if (!confirm(`"${name}" 항목을 삭제할까요?`)) return;
+  MED_PRESETS.splice(idx, 1);
+  saveMedPresets(MED_PRESETS);
+  renderMedPresets();
+  showToast('삭제됨', 'success');
+}
+function renameMedPreset(idx){
+  const name = MED_PRESETS[idx];
+  const newName = prompt('새 이름:', name);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed){ showToast('이름 비어있음', 'warn'); return; }
+  if (trimmed === name) return;
+  if (MED_PRESETS.includes(trimmed)){ showToast('이미 있는 이름', 'warn'); return; }
+  MED_PRESETS[idx] = trimmed;
+  saveMedPresets(MED_PRESETS);
+  renderMedPresets();
+  showToast('수정됨', 'success');
+}
+function selectMed(btn, name){
+  btn.parentElement.querySelectorAll('.med-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('m-name').value = name;
+}
+function saveMed(){
+  const t = document.getElementById('m-time').value;
+  const name = document.getElementById('m-name').value.trim();
+  if (!name){ showToast('약 이름을 입력하세요', 'warn'); return; }
+  const cg = document.getElementById('modal-cg').value || null;
+  records.push({ id:newId(), timestamp: t ? new Date(t).getTime() : Date.now(), type:'med',
+    data:{caregiver:cg, name, dose: document.getElementById('m-dose').value}, notes:'' });
+  sortRecords(); saveRecords(); closeModal(); renderAll();
+  showToast('저장됨', 'success');
+}
+
+function openBloodForm(){
+  const modal = document.getElementById('modal-content');
+  const fiveAm = new Date(); fiveAm.setHours(5,0,0,0);
+  modal.innerHTML = `
+    <div class="modal-header"><h3>혈액 수치</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="form-row"><label>채혈 시각</label><input type="datetime-local" id="b-time" value="${localDateTimeInput(fiveAm)}"></div>
+    <div class="form-row"><label>백혈구 WBC</label><input type="number" inputmode="numeric" id="b-wbc" placeholder="4460"></div>
+    <div class="form-row"><label>헤모글로빈 Hb</label><input type="number" step="0.1" inputmode="decimal" id="b-hb" placeholder="9.0"></div>
+    <div class="form-row"><label>혈소판 PLT (K)</label><input type="number" inputmode="numeric" id="b-plt" placeholder="37"></div>
+    <div class="form-row"><label>절대호중구 ANC</label><input type="number" inputmode="numeric" id="b-anc" placeholder="2010"></div>
+    <button class="btn-primary" onclick="saveBlood()">저장</button>`;
+  showModal();
+}
+function saveBlood(){
+  const t = document.getElementById('b-time').value;
+  const data = {
+    caregiver: null,
+    wbc: parseInt(document.getElementById('b-wbc').value) || null,
+    hb: parseFloat(document.getElementById('b-hb').value) || null,
+    plt: parseInt(document.getElementById('b-plt').value) || null,
+    anc: parseInt(document.getElementById('b-anc').value) || null,
+    crp: null,
+  };
+  if (['wbc','hb','plt','anc'].every(k => data[k] == null)){ showToast('수치를 입력하세요', 'warn'); return; }
+  records.push({ id:newId(), timestamp: t ? new Date(t).getTime() : Date.now(), type:'blood', data, notes:'' });
+  sortRecords(); saveRecords(); closeModal(); renderAll();
+  showToast('저장됨', 'success');
+}
+
+// ====== 공통 ======
+function showModal(){ document.getElementById('modal-backdrop').classList.add('show'); }
+function closeModal(){ document.getElementById('modal-backdrop').classList.remove('show'); }
+function closeModalOnBackdrop(e){ if (e.target.id === 'modal-backdrop') closeModal(); }
+function showToast(msg, kind=''){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + kind;
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+function switchTab(name){
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('nav.bottom-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  if (name === 'charts') setTimeout(renderCharts, 50);
+  if (name === 'history') renderHistory();
+  if (name === 'dashboard') setTimeout(renderTodayCharts, 50);
+}
+
+// ====== 내보내기 ======
+function exportMarkdown(){
+  if (records.length === 0){ showToast('기록이 없습니다', 'warn'); return; }
+  const sorted = records.slice().sort((a,b) => a.timestamp - b.timestamp);
+  const byDate = {};
+  sorted.forEach(r => {
+    const d = new Date(r.timestamp);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (!byDate[key]) byDate[key] = [];
+    byDate[key].push(r);
+  });
+  let md = `# 박형숙 무병장수 프로젝트 기록\n\n**내보낸 시각:** ${fmtDateTime(Date.now())}\n**총 기록:** ${records.length}건\n\n---\n\n`;
+  Object.keys(byDate).sort().forEach(date => {
+    md += `## ${date}\n\n`;
+    const shifts = byDate[date].filter(r => r.type === 'shift');
+    if (shifts.length){
+      md += `**간병 교대:**\n`;
+      shifts.forEach(s => {
+        const cg = cgById(s.data.caregiver);
+        const endT = s.data.endTime;
+        md += endT ? `- ${fmtTime(s.timestamp)} ~ ${fmtTime(endT)} — ${cg ? cg.name+'('+cg.short+')' : '?'}\n`
+                   : `- ${fmtTime(s.timestamp)} 시작 (진행 중) — ${cg ? cg.name+'('+cg.short+')' : '?'}\n`;
+      });
+      md += '\n';
+    }
+    md += `**기록:**\n`;
+    byDate[date].filter(r => r.type !== 'shift').forEach(r => {
+      const time = fmtTime(r.timestamp);
+      const cg = r.data.caregiver ? cgById(r.data.caregiver) : null;
+      const cgStr = cg ? ` [${cg.short}]` : '';
+      if (r.type === 'vital'){
+        const p = [];
+        if (r.data.temp != null) p.push(`체온 ${r.data.temp}℃`);
+        if (r.data.rr != null) p.push(`호흡 ${r.data.rr}/분`);
+        if (r.data.hr != null) p.push(`맥박 ${r.data.hr}/분`);
+        if (r.data.spo2 != null) p.push(`SpO₂ ${r.data.spo2}%`);
+        if (r.data.sbp != null) p.push(`혈압 ${r.data.sbp}/${r.data.dbp ?? '?'}`);
+        md += `- ${time}${cgStr} **활력** — ${p.join(' · ')}\n`;
+      } else if (r.type === 'med'){
+        md += `- ${time}${cgStr} **약/처치** — ${r.data.name}${r.data.dose ? ' '+r.data.dose : ''}\n`;
+      } else if (r.type === 'blood'){
+        const p = [];
+        if (r.data.wbc != null) p.push(`WBC ${r.data.wbc}`);
+        if (r.data.hb != null) p.push(`Hb ${r.data.hb}`);
+        if (r.data.plt != null) p.push(`PLT ${r.data.plt}K`);
+        if (r.data.anc != null) p.push(`ANC ${r.data.anc}`);
+        md += `- ${time}${cgStr} **혈액** — ${p.join(' · ')}\n`;
+      } else if (r.type === 'note'){
+        md += `- ${time}${cgStr} **특이사항** — ${r.data.text}\n`;
+      }
+    });
+    md += '\n';
+  });
+  const blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; const now = new Date();
+  a.download = `MDS_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}.md`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  showToast('마크다운 다운로드 시작', 'success');
+}
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(records, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; const now = new Date();
+  a.download = `MDS_backup_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  showToast('백업 다운로드 시작', 'success');
+}
+function importJSON(){
+  const inp = document.getElementById('import-file');
+  inp.onchange = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!Array.isArray(imported)) throw new Error('형식 오류');
+        if (confirm(`${imported.length}건을 병합할까요?`)){
+          const ids = new Set(records.map(r => r.id));
+          imported.forEach(r => { if (!ids.has(r.id)) records.push(r); });
+          sortRecords(); saveRecords(); renderAll();
+          showToast('불러오기 완료', 'success');
+        }
+      } catch(err){ showToast('파일 형식 오류', 'danger'); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+function clearAll(){
+  if (!confirm('전체 기록을 삭제할까요?')) return;
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  records = []; saveRecords(); renderAll();
+  showToast('전체 삭제됨', 'warn');
+}
+function showSettings(){
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header"><h3>설정 / 정보</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div style="font-size:13px;color:#475569;line-height:1.7">
+      <p><strong>박형숙 (62세 여성)</strong> — MDS · 폐렴 · 폐경색/혈전 · 입원 D+? (첫 입원일 2026-04-28)</p>
+      <p><strong>측정자:</strong> 한해광(아버지) · 한승욱(형) · 한승재(나)</p>
+      <p><strong>저장:</strong> 폰 브라우저 저장소(localStorage). JSON 백업/공유 가능.</p>
+      <p><strong>혈구수치 색상:</strong> 초록=정상, 주황=정상 미만, 빨강=중증위험.</p>
+      <p style="margin-top:14px"><strong>총 기록:</strong> ${records.length}건</p>
+    </div>
+    <button class="btn-secondary" onclick="closeModal()">닫기</button>`;
+  showModal();
+}
+
+// ====== 초기화 ======
+function renderAll(){
+  renderAlertBanner();
+  renderBloodCard();
+  renderTodayCharts();
+  renderTodaySymptoms();
+  renderActiveShiftBanner();
+  renderRecentMeds();
+  renderDailySummary();
+  // sync qm cg with active shift
+  const active = getActiveCaregiverId();
+  if (active) qmSetCg(active);
+  if (document.getElementById('tab-history').classList.contains('active')) renderHistory();
+}
+function init(){
+  loadRecords();
+  seedTodayBloodIfMissing();
+  const now = new Date();
+  document.getElementById('today-date').textContent = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  // 입원일: 2026-04-28 (4월=index 3)
+  const admission = new Date(2026, 3, 28);
+  const days = Math.floor((now - admission) / (24*3600*1000));
+  document.getElementById('profile-day').textContent = `D+${days}`;
+
+  // qm caregiver init
+  const active = getActiveCaregiverId();
+  if (active) qmSetCg(active);
+
+  // history filter buttons
+  document.querySelectorAll('#history-filters .filter-btn').forEach(b => {
+    b.onclick = () => {
+      historyFilter = b.dataset.filter;
+      document.querySelectorAll('#history-filters .filter-btn').forEach(x => x.classList.toggle('active', x === b));
+      renderHistory();
+    };
+  });
+  // chart range buttons
+  document.querySelectorAll('#chart-range .filter-btn').forEach(b => {
+    b.onclick = () => {
+      chartRange = b.dataset.range === 'all' ? 'all' : parseInt(b.dataset.range);
+      document.querySelectorAll('#chart-range .filter-btn').forEach(x => x.classList.toggle('active', x === b));
+      renderCharts();
+    };
+  });
+  // qm cg picker
+  document.querySelectorAll('#qm-cg-btns button').forEach(b => {
+    b.onclick = () => qmSetCg(b.dataset.cg);
+  });
+  // qm note toggle: if user starts typing in textarea, keep it shown
+  const noteEl = document.getElementById('qm-note');
+  noteEl.addEventListener('focus', () => noteEl.classList.add('show'));
+  // Show note input by tapping the area below presets — actually just keep visible
+  noteEl.classList.add('show');
+
+  renderQmPresets();
+  qmUpdateDisplays();
+  renderAll();
+
+  setInterval(() => {
+    if (document.getElementById('tab-dashboard').classList.contains('active')){
+      renderActiveShiftBanner(); renderDailySummary();
+    }
+  }, 60000);
+}
+(function loadAdapter(){
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js';
+  s.onload = init;
+  s.onerror = () => { showToast('차트 라이브러리 로드 실패', 'warn'); init(); };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</
